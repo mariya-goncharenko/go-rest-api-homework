@@ -65,6 +65,36 @@ func getAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+Обработчик для получения задачи по ID
+
+Обработчик должен вернуть задачу с указанным в запросе пути ID, если такая есть в мапе.
+
+В мапе ключами являются ID задач. Вспомните, как проверить, есть ли ключ в мапе. Если такого ID нет, верните соответствующий статус.
+
+Конечная точка /tasks/{id}.
+
+Метод GET.
+
+При успешном выполнении запроса сервер должен вернуть статус 200 OK.
+
+В случае ошибки или отсутствия задачи в мапе сервер должен вернуть статус 400 Bad Request.
+*/
+func getTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := chi.URLParam(r, "id")
+
+	task, found := tasks[id]
+	if !found {
+		http.Error(w, "Задача не найдена", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(task); err != nil {
+		http.Error(w, "Ошибка сериализации JSON", http.StatusInternalServerError)
+	}
+}
+
 func main() {
 	r := chi.NewRouter()
 
