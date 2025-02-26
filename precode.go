@@ -128,6 +128,31 @@ func createTaskHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newTask)
 }
 
+/*
+Обработчик удаления задачи по ID
+
+Обработчик должен удалить задачу из мапы по её ID. Здесь так же нужно сначала проверить, есть ли задача с таким ID в мапе, если нет вернуть соответствующий статус.
+
+Конечная точка /tasks/{id}.
+
+Метод DELETE.
+
+При успешном выполнении запроса сервер должен вернуть статус 200 OK.
+
+В случае ошибки или отсутствия задачи в мапе сервер должен вернуть статус 400 Bad Request.
+*/
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if _, found := tasks[id]; !found {
+		http.Error(w, "Задача не найдена", http.StatusBadRequest)
+		return
+	}
+
+	delete(tasks, id)
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	r := chi.NewRouter()
 
@@ -136,6 +161,8 @@ func main() {
 	r.Get("/tasks/{id}", getTaskHandler) // Получить задачу по ID
 
 	r.Post("/tasks", createTaskHandler) // Создать новую задачу
+
+	r.Delete("/tasks/{id}", deleteTaskHandler) // Удалить задачу по ID
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
