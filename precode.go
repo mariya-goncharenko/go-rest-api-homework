@@ -1,13 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-// Task ...
 type Task struct {
 	ID           string   `json:"id"`
 	Description  string   `json:"description"`
@@ -39,14 +39,36 @@ var tasks = map[string]Task{
 	},
 }
 
-// Ниже напишите обработчики для каждого эндпоинта
-// ...
+/*
+Обработчик для получения всех задач
+
+Обработчик должен вернуть все задачи, которые хранятся в мапе.
+
+Конечная точка /tasks.
+
+Метод GET.
+
+При успешном запросе сервер должен вернуть статус 200 OK.
+
+При ошибке сервер должен вернуть статус 500 Internal Server Error.
+*/
+func getAllTasksHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var taskList []Task
+	for _, task := range tasks {
+		taskList = append(taskList, task)
+	}
+
+	if err := json.NewEncoder(w).Encode(taskList); err != nil {
+		http.Error(w, "Ошибка сериализации JSON", http.StatusInternalServerError)
+	}
+}
 
 func main() {
 	r := chi.NewRouter()
 
-	// здесь регистрируйте ваши обработчики
-	// ...
+	r.Get("/tasks", getAllTasksHandler) // Получить все задачи
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
