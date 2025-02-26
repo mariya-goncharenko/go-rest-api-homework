@@ -95,12 +95,47 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+Обработчик для отправки задачи на сервер
+
+Обработчик должен принимать задачу в теле запроса и сохранять ее в мапе.
+
+Конечная точка /tasks.
+
+Метод POST.
+
+При успешном запросе сервер должен вернуть статус 201 Created.
+
+При ошибке сервер должен вернуть статус 400 Bad Request.
+*/
+func createTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var newTask Task
+	if err := json.NewDecoder(r.Body).Decode(&newTask); err != nil {
+		http.Error(w, "Ошибка декодирования JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Проверяем, что ID уникален
+	if _, exists := tasks[newTask.ID]; exists {
+		http.Error(w, "Задача с таким ID уже существует", http.StatusConflict)
+		return
+	}
+
+	tasks[newTask.ID] = newTask
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newTask)
+}
+
 func main() {
 	r := chi.NewRouter()
 
 	r.Get("/tasks", getAllTasksHandler) // Получить все задачи
 
 	r.Get("/tasks/{id}", getTaskHandler) // Получить задачу по ID
+
+	r.Post("/tasks", createTaskHandler) // Создать новую задачу
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
