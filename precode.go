@@ -100,6 +100,8 @@ func main() {
 
 	r.Get("/tasks", getAllTasksHandler) // Получить все задачи
 
+	r.Get("/tasks/{id}", getTaskHandler) // Получить задачу по ID
+
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
 		return
