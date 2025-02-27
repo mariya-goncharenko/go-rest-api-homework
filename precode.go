@@ -63,6 +63,7 @@ func getAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(taskList); err != nil {
 		http.Error(w, "Ошибка сериализации JSON", http.StatusInternalServerError)
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 /*
@@ -93,6 +94,7 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(task); err != nil {
 		http.Error(w, "Ошибка сериализации JSON", http.StatusInternalServerError)
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 /*
@@ -119,13 +121,12 @@ func createTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем, что ID уникален
 	if _, exists := tasks[newTask.ID]; exists {
-		http.Error(w, "Задача с таким ID уже существует", http.StatusConflict)
+		http.Error(w, "Задача с таким ID уже существует", http.StatusBadRequest)
 		return
 	}
 
 	tasks[newTask.ID] = newTask
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newTask)
 }
 
 /*
@@ -142,6 +143,8 @@ func createTaskHandler(w http.ResponseWriter, r *http.Request) {
 В случае ошибки или отсутствия задачи в мапе сервер должен вернуть статус 400 Bad Request.
 */
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	id := chi.URLParam(r, "id")
 
 	if _, found := tasks[id]; !found {
